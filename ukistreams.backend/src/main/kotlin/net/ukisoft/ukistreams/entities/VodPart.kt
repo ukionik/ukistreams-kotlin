@@ -1,4 +1,4 @@
-package net.ukisoft.ukistreams.entity
+package net.ukisoft.ukistreams.entities
 
 import javax.persistence.Column
 import javax.persistence.Entity

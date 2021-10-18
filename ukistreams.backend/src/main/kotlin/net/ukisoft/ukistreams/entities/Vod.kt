@@ -1,4 +1,4 @@
-package net.ukisoft.ukistreams.entity
+package net.ukisoft.ukistreams.entities
 
 import net.ukisoft.ukistreams.enums.VodType
 import javax.persistence.*

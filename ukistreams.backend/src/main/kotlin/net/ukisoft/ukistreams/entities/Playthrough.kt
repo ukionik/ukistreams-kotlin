@@ -1,4 +1,4 @@
-package net.ukisoft.ukistreams.entity
+package net.ukisoft.ukistreams.entities
 
 import net.ukisoft.ukistreams.enums.Blind
 import net.ukisoft.ukistreams.enums.FirstPlaythrough

@@ -1,4 +1,4 @@
-package net.ukisoft.ukistreams.entity
+package net.ukisoft.ukistreams.entities
 
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate

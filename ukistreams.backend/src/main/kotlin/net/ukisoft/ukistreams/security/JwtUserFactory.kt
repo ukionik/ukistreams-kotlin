@@ -1,6 +1,6 @@
 package net.ukisoft.ukistreams.security
 
-import net.ukisoft.ukistreams.model.UserModel
+import net.ukisoft.ukistreams.model.user.UserModel
 
 /**
  * Started in IntelliJ IDEA
@@ -10,9 +10,9 @@ import net.ukisoft.ukistreams.model.UserModel
 object JwtUserFactory {
     fun create(user: UserModel): JwtUser {
         var role: String? = null
-        if (user.isAdmin()) {
+        if (user.admin) {
             role = "ADMIN"
         }
-        return JwtUser(user.getLogin(), user.getPassword(), role)
+        return JwtUser(user.login, user.password, role)
     }
 }
