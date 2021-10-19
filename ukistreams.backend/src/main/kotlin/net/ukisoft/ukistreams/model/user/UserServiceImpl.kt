@@ -1,7 +1,7 @@
 package net.ukisoft.ukistreams.model.user
 
 import net.ukisoft.ukistreams.entities.User
-import net.ukisoft.ukistreams.model.common.AppSettingsRepository
+import net.ukisoft.ukistreams.model.config.AppSettingsRepository
 import net.ukisoft.ukistreams.util.default
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder

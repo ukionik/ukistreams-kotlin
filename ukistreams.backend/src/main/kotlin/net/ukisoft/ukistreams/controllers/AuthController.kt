@@ -3,7 +3,7 @@ package net.ukisoft.ukistreams.controllers
 import net.ukisoft.ukistreams.model.auth.AuthenticationRequest
 import net.ukisoft.ukistreams.model.auth.AuthenticationResponse
 import net.ukisoft.ukistreams.model.auth.RegistrationRequest
-import net.ukisoft.ukistreams.model.common.AppSettingsRepository
+import net.ukisoft.ukistreams.model.config.AppSettingsRepository
 import net.ukisoft.ukistreams.model.user.UserModel
 import net.ukisoft.ukistreams.model.user.UserService
 import net.ukisoft.ukistreams.security.JwtTokenProvider

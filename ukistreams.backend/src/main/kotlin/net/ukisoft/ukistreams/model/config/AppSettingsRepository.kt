@@ -1,4 +1,4 @@
-package net.ukisoft.ukistreams.model.common
+package net.ukisoft.ukistreams.model.config
 
 /**
  * Started in IntelliJ IDEA

@@ -1,4 +1,4 @@
-package net.ukisoft.ukistreams.model.common
+package net.ukisoft.ukistreams.model.config
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
