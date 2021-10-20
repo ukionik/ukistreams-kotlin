@@ -1,6 +1,6 @@
 package net.ukisoft.ukistreams.model.playthrough;
 
-import net.ukisoft.ukistreams.entity.Playthrough;
+import net.ukisoft.ukistreams.entities.Playthrough;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**

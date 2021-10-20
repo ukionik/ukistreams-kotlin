@@ -8,23 +8,19 @@ import java.time.LocalDate
  * User: Vyzhanov Andrey
  * Created: 25.10.2020 02:55
  */
-class GameCompletedItemModel {
-    var index: Int? = null
-    var gameName: String? = null
-    var platformId: Long? = null
-    var platformName: String? = null
-    var genreId: Long? = null
-    var genreName: String? = null
-
-    ///============================== Getters / Setters ==============================
-    var projectId: Long? = null
-    var projectName: String? = null
-    var duration: Duration? = null
-    var endDate: LocalDate? = null
-    var rate: Double? = null
-    var difficulty: Double? = null
-    var pickedBy: String? = null
-
-    ///============================== End of Getters / Setters ==============================
-    var vodParts: List<GameCompletedVodPartItemModel>? = null
-}
+data class GameCompletedItemModel (
+    val gameName: String,
+    val platformId: Long,
+    val platformName: String,
+    val genreId: Long,
+    val genreName: String,
+    val projectId: Long,
+    val projectName: String,
+    val duration: Duration,
+    val endDate: LocalDate,
+    val rate: Double,
+    val difficulty: Double,
+    val pickedBy: String,
+    val vodParts: List<GameCompletedVodPartItemModel>,
+    var index: Int = 0
+)

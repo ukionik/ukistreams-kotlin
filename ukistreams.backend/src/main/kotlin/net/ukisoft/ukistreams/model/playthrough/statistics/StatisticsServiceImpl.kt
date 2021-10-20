@@ -1,20 +1,14 @@
-package net.ukisoft.ukistreams.model.playthrough.statistics;
+package net.ukisoft.ukistreams.model.playthrough.statistics
 
-import net.ukisoft.ukistreams.entity.Playthrough;
-import net.ukisoft.ukistreams.model.repository.FetchField;
-import net.ukisoft.ukistreams.model.repository.RepositoryFilter;
-import net.ukisoft.ukistreams.model.v1.all.statistics.StatisticsGenreModelMapper;
-import net.ukisoft.ukistreams.model.v1.all.statistics.StatisticsModel;
-import net.ukisoft.ukistreams.model.v1.all.statistics.StatisticsPlatformModelMapper;
-import net.ukisoft.ukistreams.repository.GenreRepository;
-import net.ukisoft.ukistreams.repository.PlatformRepository;
-import net.ukisoft.ukistreams.repository.PlaythroughRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.stream.Collectors;
+import net.ukisoft.ukistreams.model.core.FetchField
+import net.ukisoft.ukistreams.model.core.RepositoryFilter
+import net.ukisoft.ukistreams.model.genre.GenreRepository
+import net.ukisoft.ukistreams.model.platform.PlatformRepository
+import net.ukisoft.ukistreams.model.playthrough.PlaythroughRepository
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Sort
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * Started in IntelliJ IDEA
@@ -23,45 +17,37 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional
-public class StatisticsServiceImpl implements StatisticsService {
-  private final PlaythroughRepository playthroughRepository;
-  private final PlatformRepository platformRepository;
-  private final GenreRepository genreRepository;
+class StatisticsServiceImpl @Autowired constructor(
+    playthroughRepository: PlaythroughRepository,
+    platformRepository: PlatformRepository,
+    genreRepository: GenreRepository
+) : StatisticsService {
+    private val playthroughRepository: PlaythroughRepository
+    private val platformRepository: PlatformRepository
+    private val genreRepository: GenreRepository
+    override fun findStatistics(): StatisticsModel {
+        val filter = RepositoryFilter()
+        filter.fetchFields = listOf(FetchField.left("game"))
+        val playthroughs = playthroughRepository.findByFilter(filter)
+        val platforms = platformRepository.findAll(Sort.by(Sort.Direction.ASC, "ordinal"))
+        val genres = genreRepository.findAll(Sort.by(Sort.Direction.ASC, "name"))
+        val gameMap = playthroughs
+            .groupBy { it.game!! }
+            .map { x -> x.key to x.value.maxByOrNull { it.endDate!! } }
+            .filter { (_, value) -> value != null }
+            .map { (key, value) -> key to value!! }
 
-  @Autowired
-  public StatisticsServiceImpl(PlaythroughRepository playthroughRepository
-          , PlatformRepository platformRepository
-          , GenreRepository genreRepository) {
-    this.playthroughRepository = playthroughRepository;
-    this.platformRepository = platformRepository;
-    this.genreRepository = genreRepository;
-  }
+        val platformMapper = StatisticsPlatformModelMapper()
+        val genreMapper = StatisticsGenreModelMapper()
+        val platformMap = gameMap.groupBy { it.first.platform!!.id!! }
+        val genreMap = gameMap.groupBy { it.first.genre!!.id!! }
 
-  @Override
-  public StatisticsModel findStatistics() {
-    var filter = new RepositoryFilter();
-    filter.setFetchFields(FetchField.left("game")
-    );
+        return StatisticsModel(platformMapper.toModel(platforms, platformMap), genreMapper.toModel(genres, genreMap))
+    }
 
-    var playthroughs = playthroughRepository.findByFilter(filter);
-    var platforms = platformRepository.findAll(Sort.by(Sort.Direction.ASC, "ordinal"));
-    var genres = genreRepository.findAll(Sort.by(Sort.Direction.ASC, "name"));
-
-    var gameMap = playthroughs.parallelStream()
-            .collect(Collectors.toMap(Playthrough::getGame, x -> x
-                    , (x1, x2) -> x1.getEndDate().isAfter(x2.getEndDate()) ? x1 : x2));
-
-    var platformMapper = new StatisticsPlatformModelMapper();
-    var genreMapper = new StatisticsGenreModelMapper();
-
-    var platformMap = gameMap.entrySet()
-            .parallelStream()
-            .collect(Collectors.groupingBy(x -> x.getKey().getPlatform().getId()));
-
-    var genreMap = gameMap.entrySet()
-            .parallelStream()
-            .collect(Collectors.groupingBy(x -> x.getKey().getGenre().getId()));
-
-    return new StatisticsModel(platformMapper.toModel(platforms, platformMap), genreMapper.toModel(genres, genreMap));
-  }
+    init {
+        this.playthroughRepository = playthroughRepository
+        this.platformRepository = platformRepository
+        this.genreRepository = genreRepository
+    }
 }

@@ -1,8 +1,5 @@
 package net.ukisoft.ukistreams.model.playthrough.completed;
 
-import net.ukisoft.ukistreams.model.v1.all.completed.GameCompletedItemModel;
-import net.ukisoft.ukistreams.model.v1.all.completed.GameCompletedPlatformModel;
-
 import java.util.List;
 
 /**
@@ -12,5 +9,6 @@ import java.util.List;
  */
 public interface CompletedService {
   List<GameCompletedItemModel> findAll();
+
   List<GameCompletedPlatformModel> findByPlatform();
 }

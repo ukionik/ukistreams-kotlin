@@ -5,4 +5,4 @@ package net.ukisoft.ukistreams.model.core
  * User: Vyzhanov Andrey
  * Created: 02.12.2020 18:10
  */
-data class RepositoryFilter(val fetchFields: List<FetchField> = ArrayList())
+data class RepositoryFilter(var fetchFields: List<FetchField> = ArrayList())
