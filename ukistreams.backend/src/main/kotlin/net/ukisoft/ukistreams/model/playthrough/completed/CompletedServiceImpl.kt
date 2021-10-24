@@ -1,23 +1,19 @@
-package net.ukisoft.ukistreams.model.playthrough.completed;
+package net.ukisoft.ukistreams.model.playthrough.completed
 
-import net.ukisoft.ukistreams.entity.Game;
-import net.ukisoft.ukistreams.entity.Playthrough;
-import net.ukisoft.ukistreams.entity.VodPart;
-import net.ukisoft.ukistreams.model.platform.PlatformRepository;
-import net.ukisoft.ukistreams.model.playthrough.PlaythroughRepository;
-import net.ukisoft.ukistreams.model.repository.FetchField;
-import net.ukisoft.ukistreams.model.repository.RepositoryFilter;
-import net.ukisoft.ukistreams.repository.VodPartRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import net.ukisoft.ukistreams.entities.Platform
+import net.ukisoft.ukistreams.entities.Playthrough
+import net.ukisoft.ukistreams.entity.Game
+import net.ukisoft.ukistreams.model.core.FetchField
+import net.ukisoft.ukistreams.model.core.RepositoryFilter
+import net.ukisoft.ukistreams.model.platform.PlatformRepository
+import net.ukisoft.ukistreams.model.playthrough.PlaythroughRepository
+import net.ukisoft.ukistreams.model.playthrough.VodPartRepository
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Sort
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.util.function.Consumer
+import java.util.function.Function
 
 /**
  * Started in IntelliJ IDEA
@@ -26,111 +22,101 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional
-public class CompletedServiceImpl implements CompletedService {
-  private final PlaythroughRepository playthroughRepository;
-  private final VodPartRepository vodPartRepository;
-  private final PlatformRepository platformRepository;
-  private final GameCompletedItemModelMapper gameCompletedItemModelMapper;
+class CompletedServiceImpl @Autowired constructor(
+    playthroughRepository: PlaythroughRepository,
+    vodPartRepository: VodPartRepository,
+    platformRepository: PlatformRepository
+) : CompletedService {
+    private val playthroughRepository: PlaythroughRepository
+    private val vodPartRepository: VodPartRepository
+    private val platformRepository: PlatformRepository
+    private val gameCompletedItemModelMapper: GameCompletedItemModelMapper
+    override fun findAll(): List<GameCompletedItemModel> {
+        val vodPartRepositoryFilter = RepositoryFilter()
+        vodPartRepositoryFilter.fetchFields = listOf(FetchField.left("vod"))
+        val vodGroup = vodPartRepository.findByFilter(vodPartRepositoryFilter)
+            .groupBy { it.vod!! }
+        val filter = RepositoryFilter()
+        filter.fetchFields = listOf(
+            FetchField.left("game"),
+            FetchField.left("game.platform"),
+            FetchField.left("game.genre"),
+            FetchField.left("game.review"),
+            FetchField.left("project")
+        )
+        val playthroughs = playthroughRepository.findByFilter(filter)
+        val playthroughVodGroup = vodGroup.entries
+            .groupBy { it.key!!.playthrough!!.id }
 
-  @Autowired
-  public CompletedServiceImpl(
-          PlaythroughRepository playthroughRepository,
-          VodPartRepository vodPartRepository,
-          PlatformRepository platformRepository
-  ) {
-    this.playthroughRepository = playthroughRepository;
-    this.vodPartRepository = vodPartRepository;
-    this.platformRepository = platformRepository;
-    this.gameCompletedItemModelMapper = new GameCompletedItemModelMapper();
-  }
+        val gameMap = playthroughs
+            .groupBy { it.game!! }
+            .map { x -> x.key to x.value.maxByOrNull { it.endDate!! } }
+            .filter { (_, value) -> value != null }
+            .map { (key, value) -> key to value!! }
 
-  @Override
-  public List<GameCompletedItemModel> findAll() {
-    var vodPartRepositoryFilter = new RepositoryFilter();
-    vodPartRepositoryFilter.setFetchFields(FetchField.left("vod"));
+        val items = gameMap
+            .sortedByDescending { (_, value) -> value.endDate }
+            .sortedByDescending { (_, value) -> value.id }
+            .map { (key, value) ->
+                gameCompletedItemModelMapper.toModel(key, value,
+                    playthroughVodGroup.getOrDefault(value.id, ArrayList()).map { it.toPair() })
+            }
 
-    var vodGroup = vodPartRepository.findByFilter(vodPartRepositoryFilter)
-            .parallelStream()
-            .collect(Collectors.groupingBy(VodPart::getVod));
-
-    var filter = new RepositoryFilter();
-    filter.setFetchFields(FetchField.left("game")
-            , FetchField.left("game.platform")
-            , FetchField.left("game.genre")
-            , FetchField.left("game.review")
-            , FetchField.left("project")
-    );
-
-    var playthroughs = playthroughRepository.findByFilter(filter);
-
-    var playthroughVodGroup = vodGroup.entrySet()
-            .parallelStream()
-            .collect(Collectors.groupingBy(x -> x.getKey().getPlaythrough().getId()));
-
-    var gameMap = playthroughs.parallelStream()
-            .collect(Collectors.toMap(Playthrough::getGame, x -> x
-                    , (x1, x2) -> x1.getEndDate().isAfter(x2.getEndDate()) ? x1 : x2));
-
-    var items = gameMap.entrySet().parallelStream()
-            .sorted(Comparator.comparing((Map.Entry<Game, Playthrough> x) -> x.getValue().getEndDate(), Comparator.reverseOrder())
-                    .thenComparing(x -> x.getValue().getId(), Comparator.reverseOrder()))
-            .map(x -> gameCompletedItemModelMapper.toModel(x.getKey(), x.getValue(), playthroughVodGroup.getOrDefault(x.getValue().getId(), new ArrayList<>())))
-            .collect(Collectors.toList());
-
-    for (var i = 0; i < items.size(); i++) {
-      var item = items.get(i);
-      item.setIndex(items.size() - i);
+        for (i in items.indices) {
+            val item = items[i]
+            item.index = items.size - i
+        }
+        return items
     }
 
-    return items;
-  }
+    override fun findByPlatform(): List<GameCompletedPlatformModel> {
+        val vodPartRepositoryFilter = RepositoryFilter()
+        vodPartRepositoryFilter.fetchFields = listOf(FetchField.left("vod"))
+        val vodGroup = vodPartRepository.findByFilter(vodPartRepositoryFilter)
+        val filter = RepositoryFilter()
+        filter.fetchFields = listOf(FetchField.left("game"), FetchField.left("game.genre"), FetchField.left("game.review"))
+        val playthroughs = playthroughRepository.findByFilter(filter)
+        val platforms = platformRepository.findAll(Sort.by(Sort.Direction.ASC, "ordinal"))
+        val playthroughVodGroup = vodGroup
+            .groupBy { it -> it. }
+            .collect(Collectors.groupingBy(Function<T, K> { x: T -> x.getKey().getPlaythrough().getId() }))
+        val gameMap = playthroughs.parallelStream()
+            .collect(
+                Collectors.toMap<Any, Any, Any>(
+                    Playthrough::getGame,
+                    Function<Any, Any?> { x: Playthrough? -> x },
+                    BinaryOperator<Any> { x1: Any, x2: Any ->
+                        if (x1.getEndDate().isAfter(x2.getEndDate())) x1 else x2
+                    })
+            )
+        val gameByPlatformGroup = gameMap.entries.parallelStream()
+            .filter { (key): Map.Entry<Any, Any> -> key.getPlatform() != null }
+            .collect<Map<Any?, List<Map.Entry<Any, Any>>>, Any>(
+                Collectors.groupingBy<Any, Any>(
+                    Function<Any, Any> { (key): Map.Entry<Any, Any?> -> key.getPlatform().getId() })
+            )
+        val gamePlatforms = ArrayList<GameCompletedPlatformModel>()
+        val mapper = GameCompletedByPlatformItemModelMapper()
+        platforms.forEach(Consumer { platform: Platform ->
+            val list = gameByPlatformGroup[platform.id] ?: ArrayList()
+            val games = list.stream()
+                .sorted(Comparator.comparing(Function<Map.Entry<Any, Any>, Any> { (key): Map.Entry<Any, Any> -> key.getName() }))
+                .map { (key, value): Map.Entry<Any, Any> ->
+                    mapper.toModel(
+                        key, value, playthroughVodGroup.getOrDefault(value.getId(), ArrayList<E>())
+                    )
+                }
+                .collect<List<GameCompletedByPlatformItemModel>, Any>(Collectors.toList<GameCompletedByPlatformItemModel>())
+            val model = GameCompletedPlatformModel(platform, games)
+            gamePlatforms.add(model)
+        })
+        return gamePlatforms
+    }
 
-  @Override
-  public List<GameCompletedPlatformModel> findByPlatform() {
-    var vodPartRepositoryFilter = new RepositoryFilter();
-    vodPartRepositoryFilter.setFetchFields(FetchField.left("vod"));
-
-    var vodGroup = vodPartRepository.findByFilter(vodPartRepositoryFilter)
-            .parallelStream()
-            .collect(Collectors.groupingBy(VodPart::getVod));
-
-    var filter = new RepositoryFilter();
-    filter.setFetchFields(FetchField.left("game")
-            , FetchField.left("game.genre")
-            , FetchField.left("game.review")
-    );
-
-    var playthroughs = playthroughRepository.findByFilter(filter);
-
-    var platforms = platformRepository.findAll(Sort.by(Sort.Direction.ASC, "ordinal"));
-
-    var playthroughVodGroup = vodGroup.entrySet()
-            .parallelStream()
-            .collect(Collectors.groupingBy(x -> x.getKey().getPlaythrough().getId()));
-
-    var gameMap = playthroughs.parallelStream()
-            .collect(Collectors.toMap(Playthrough::getGame, x -> x
-                    , (x1, x2) -> x1.getEndDate().isAfter(x2.getEndDate()) ? x1 : x2));
-
-    var gameByPlatformGroup = gameMap.entrySet().parallelStream()
-            .filter(x -> x.getKey().getPlatform() != null)
-            .collect(Collectors.groupingBy(x -> x.getKey().getPlatform().getId()));
-
-    var gamePlatforms = new ArrayList<GameCompletedPlatformModel>();
-    var mapper = new GameCompletedByPlatformItemModelMapper();
-
-    platforms.forEach(platform -> {
-      var list = gameByPlatformGroup.getOrDefault(platform.getId(), new ArrayList<>());
-
-      var games = list.stream()
-              .sorted(Comparator.comparing(x -> x.getKey().getName()))
-              .map(x -> mapper.toModel(x.getKey(), x.getValue(), playthroughVodGroup.getOrDefault(x.getValue().getId(), new ArrayList<>())))
-              .collect(Collectors.toList());
-
-      var model = new GameCompletedPlatformModel(platform, games);
-      gamePlatforms.add(model);
-    });
-
-    return gamePlatforms;
-  }
+    init {
+        this.playthroughRepository = playthroughRepository
+        this.vodPartRepository = vodPartRepository
+        this.platformRepository = platformRepository
+        gameCompletedItemModelMapper = GameCompletedItemModelMapper()
+    }
 }
