@@ -41,8 +41,8 @@ class GameCompletedItemModelMapper {
             playthrough.project!!.name!!,
             playthrough.duration!!,
             playthrough.endDate!!.toLocalDate(),
-            game.review!!.rate!!,
-            game.review!!.difficulty!!,
+            game.review!!.rate,
+            game.review!!.difficulty,
             playthrough.pickedBy!!,
             vodParts
         )

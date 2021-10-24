@@ -39,7 +39,7 @@ protected constructor() : CustomRepository<TEntity, TFilter> {
 
     private fun createFetchByColumn(columnName: String, joinType: JoinType, root: Root<TEntity>): Fetch<*, *>? {
         //Разбиваем по символу '.' на колонки. Например project.id
-        val columnNames = columnName.split("\\.").toTypedArray()
+        val columnNames = columnName.split(".").toTypedArray()
         var fetch: Fetch<*, *>? = null
         for (c in columnNames) {
             if (fetch == null) {

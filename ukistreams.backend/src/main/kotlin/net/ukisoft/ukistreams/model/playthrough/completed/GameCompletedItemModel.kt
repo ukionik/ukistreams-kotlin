@@ -18,8 +18,8 @@ data class GameCompletedItemModel (
     val projectName: String,
     val duration: Duration,
     val endDate: LocalDate,
-    val rate: Double,
-    val difficulty: Double,
+    val rate: Double?,
+    val difficulty: Double?,
     val pickedBy: String,
     val vodParts: List<GameCompletedVodPartItemModel>,
     var index: Int = 0

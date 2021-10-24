@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Created: 06.12.2020 02:15
  */
 @RestController
-@RequestMapping("/api/v1/statistics")
+@RequestMapping("/api/statistics")
 public class StatisticsController {
   private final StatisticsService statisticsService;
 

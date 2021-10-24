@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
  * Created: 07.11.2020 22:30
  */
 @RestController
-@RequestMapping("/api/v1/items")
+@RequestMapping("/api/items")
 class ItemsController @Autowired constructor(private val itemService: ItemService) {
     @GetMapping("platforms")
     fun platforms(): ResponseEntity<List<SelectItemModel<Long>>> {

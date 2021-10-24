@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController
  * Created: 25.10.2020 04:29
  */
 @RestController
-@RequestMapping("/api/v1/completed")
+@RequestMapping("/api/completed")
 class CompletedController @Autowired constructor(completedService: CompletedService) {
     private val completedService: CompletedService
 
