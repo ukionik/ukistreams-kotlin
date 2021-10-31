@@ -11,11 +11,11 @@ import javax.persistence.*
 abstract class BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null
+    var id: Long = 0
 
     @CreatedDate
-    var created: LocalDateTime? = null
+    var created: LocalDateTime = LocalDateTime.now()
 
     @LastModifiedDate
-    var updated: LocalDateTime? = null
+    var updated: LocalDateTime = LocalDateTime.now()
 }

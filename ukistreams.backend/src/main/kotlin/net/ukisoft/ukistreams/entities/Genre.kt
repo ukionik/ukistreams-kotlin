@@ -10,8 +10,8 @@ import javax.persistence.Entity
  */
 @Entity
 class Genre : BaseEntity() {
-    var ordinal: Int? = null
+    var ordinal: Int = 0
 
     @Column(unique = true)
-    var name: String? = null
+    var name: String = ""
 }

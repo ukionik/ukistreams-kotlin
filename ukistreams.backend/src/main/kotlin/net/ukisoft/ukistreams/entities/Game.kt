@@ -9,23 +9,14 @@ import javax.persistence.*
  */
 @Entity
 class Game : BaseEntity() {
-    var name: String? = null
+    var name: String = ""
 
     @ManyToOne(fetch = FetchType.LAZY)
-    var platform: Platform? = null
+    lateinit var platform: Platform
 
     @ManyToOne(fetch = FetchType.LAZY)
-    var genre: Genre? = null
+    lateinit var genre: Genre
 
     @OneToOne(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-    var review: GameReview? = null
-        set(review) {
-            if (review == null) {
-                val thisReview = this.review
-                thisReview?.game = null
-            } else {
-                review.game = this
-            }
-            field = review
-        }
+    lateinit var review: GameReview
 }
