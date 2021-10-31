@@ -25,6 +25,6 @@ data class PlaythroughEditModel(
     val projectId: Long,
     val firstPlaythrough: FirstPlaythrough,
     val blind: Blind,
-    val comment: String,
+    val comment: String?,
     val vods: List<VodEditModel>
 ) : BaseEditModel()

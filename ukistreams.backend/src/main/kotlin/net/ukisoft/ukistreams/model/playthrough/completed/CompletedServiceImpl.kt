@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.function.Consumer
 
 /**
  * Started in IntelliJ IDEA
@@ -54,8 +53,8 @@ class CompletedServiceImpl @Autowired constructor(
             .map { (key, value) -> key to value!! }
 
         val items = gameMap
-            .sortedWith(compareBy<Pair<Game, Playthrough>> { it.second.endDate }
-                .thenBy { it.second.id })
+            .sortedWith(compareByDescending<Pair<Game, Playthrough>> { it.second.endDate }
+                .thenByDescending { it.second.id })
             .map { (key, value) ->
                 gameCompletedItemModelMapper.toModel(
                     key,

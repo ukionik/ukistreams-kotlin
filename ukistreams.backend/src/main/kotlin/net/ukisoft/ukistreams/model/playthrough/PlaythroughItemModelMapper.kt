@@ -54,7 +54,7 @@ class PlaythroughItemModelMapper {
             entity.firstPlaythrough!!.label,
             entity.blind!!.label,
             vods,
-            entity.comment!!
+            entity.comment
         )
     }
 }

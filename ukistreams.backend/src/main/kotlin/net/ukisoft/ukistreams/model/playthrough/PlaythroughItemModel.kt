@@ -25,6 +25,6 @@ data class PlaythroughItemModel(
     val firstPlaythrough: String,
     val blind: String,
     val vods: List<PlaythroughVodItemModel>,
-    val comment: String,
+    val comment: String?,
     var index: Int = 0
 ) : BaseItemModel()

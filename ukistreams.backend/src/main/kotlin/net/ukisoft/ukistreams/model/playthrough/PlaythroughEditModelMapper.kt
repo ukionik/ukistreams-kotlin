@@ -42,7 +42,7 @@ class PlaythroughEditModelMapper(
         entity.project!!.id!!,
         entity.firstPlaythrough!!,
         entity.blind!!,
-        entity.comment!!,
+        entity.comment,
         entity.vods
             .map(vodMapper::toModel)
     )
@@ -57,7 +57,6 @@ class PlaythroughEditModelMapper(
         entity.firstPlaythrough = model.firstPlaythrough
         entity.blind = model.blind
         entity.comment = model.comment
-
 
         val vodMap: Map<Long, VodEditModel> = model.vods
             .filter { it.id != null }
