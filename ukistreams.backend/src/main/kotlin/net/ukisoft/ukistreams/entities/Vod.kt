@@ -17,7 +17,8 @@ class Vod : BaseEntity() {
     var playthrough: Playthrough? = null
 
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-    private var parts: MutableSet<VodPart> = HashSet()
+    var parts: MutableSet<VodPart> = HashSet()
+
     fun addPart(part: VodPart) {
         part.vod = this
         parts.add(part)
@@ -26,13 +27,5 @@ class Vod : BaseEntity() {
     fun removePart(part: VodPart) {
         part.vod = null
         parts.remove(part)
-    }
-
-    fun getParts(): Set<VodPart> {
-        return parts
-    }
-
-    fun setParts(parts: MutableSet<VodPart>) {
-        this.parts = parts
     }
 }

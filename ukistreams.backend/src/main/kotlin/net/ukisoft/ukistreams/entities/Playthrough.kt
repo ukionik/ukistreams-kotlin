@@ -35,7 +35,8 @@ class Playthrough : BaseEntity() {
     var comment: String? = null
 
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-    private var vods: MutableSet<Vod> = HashSet()
+    var vods: MutableSet<Vod> = HashSet()
+
     fun addVod(vod: Vod) {
         vod.playthrough = this
         vods.add(vod)
@@ -44,13 +45,5 @@ class Playthrough : BaseEntity() {
     fun removeVod(vod: Vod) {
         vod.playthrough = null
         vods.remove(vod)
-    }
-
-    fun getVods(): Set<Vod> {
-        return vods
-    }
-
-    fun setVods(vods: MutableSet<Vod>) {
-        this.vods = vods
     }
 }

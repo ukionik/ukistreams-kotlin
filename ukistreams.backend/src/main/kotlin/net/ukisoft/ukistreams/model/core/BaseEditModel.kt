@@ -6,5 +6,5 @@ package net.ukisoft.ukistreams.model.core
  * Created: 27.08.2020 05:06
  */
 abstract class BaseEditModel {
-    abstract val id: Long
+    abstract val id: Long?
 }
