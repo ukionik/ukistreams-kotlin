@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*
  * Created: 29.08.2020 19:42
  */
 abstract class BaseCrudController<TEditModel : BaseEditModel> protected constructor(service: CrudService<TEditModel>) {
-    protected val service: CrudService<TEditModel>
+    protected open val service: CrudService<TEditModel>
 
     @GetMapping("{id}")
     fun findById(@PathVariable id: Long): ResponseEntity<TEditModel> {

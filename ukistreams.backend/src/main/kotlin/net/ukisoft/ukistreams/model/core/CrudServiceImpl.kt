@@ -25,7 +25,7 @@ abstract class CrudServiceImpl<TEntity : BaseEntity, TEditModel : BaseEditModel>
     }
 
     override fun update(model: TEditModel) {
-        val entity = repository.getById(model.id)
+        val entity = repository.getById(model.id!!)
         modelMapper.updateEntity(entity, model)
         repository.save<TEntity>(entity)
     }

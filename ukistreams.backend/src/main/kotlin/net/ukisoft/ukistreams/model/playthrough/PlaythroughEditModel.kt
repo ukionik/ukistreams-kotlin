@@ -13,10 +13,10 @@ import java.time.LocalDate
  * Created: 28.08.2020 13:22
  */
 data class PlaythroughEditModel(
-    override val id: Long,
+    override val id: Long?,
     val newGame: Boolean,
     val gameId: Long,
-    val newGameInfo: NewGameModel,
+    val newGameInfo: NewGameModel?,
     val region: Region,
     val duration: Duration,
     val startDate: LocalDate,

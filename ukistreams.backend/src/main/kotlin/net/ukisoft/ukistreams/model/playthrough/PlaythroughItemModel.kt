@@ -10,13 +10,12 @@ import java.time.LocalDate
  * Created: 28.08.2020 13:24
  */
 data class PlaythroughItemModel(
-    val index: Int,
     val id: Long,
     val gameName: String,
     val platformName: String,
     val genreName: String,
-    val rate: Double,
-    val difficulty: Double,
+    val rate: Double?,
+    val difficulty: Double?,
     val region: String,
     val duration: Duration,
     val startDate: LocalDate,
@@ -26,5 +25,6 @@ data class PlaythroughItemModel(
     val firstPlaythrough: String,
     val blind: String,
     val vods: List<PlaythroughVodItemModel>,
-    val comment: String
+    val comment: String,
+    var index: Int = 0
 ) : BaseItemModel()

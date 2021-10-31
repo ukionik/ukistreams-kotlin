@@ -1,6 +1,5 @@
 package net.ukisoft.ukistreams.model.playthrough
 
-import net.ukisoft.ukistreams.core.CrudAllService
 import net.ukisoft.ukistreams.model.core.CrudAllService
 
 /**

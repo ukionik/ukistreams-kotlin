@@ -1,6 +1,8 @@
 package net.ukisoft.ukistreams.model.genre
 
-import net.ukisoft.ukistreams.core.CrudAllServiceImpl
+import net.ukisoft.ukistreams.entities.Genre
+import net.ukisoft.ukistreams.model.core.CrudAllServiceImpl
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -12,13 +14,13 @@ import org.springframework.transaction.annotation.Transactional
  */
 @Service
 @Transactional
-class GenreServiceImpl @Autowired constructor(genreRepository: GenreRepository?) :
-    CrudAllServiceImpl<Genre?, GenreEditModel?, GenreItemModel?>(
+class GenreServiceImpl @Autowired constructor(genreRepository: GenreRepository) :
+    CrudAllServiceImpl<Genre, GenreEditModel, GenreItemModel>(
         genreRepository,
         GenreEditModelMapper(),
         GenreItemModelMapper()
     ), GenreService {
-    protected fun defaultSort(): Sort {
+    override fun defaultSort(): Sort {
         return Sort.by(Sort.Direction.ASC, "ordinal")
     }
 }

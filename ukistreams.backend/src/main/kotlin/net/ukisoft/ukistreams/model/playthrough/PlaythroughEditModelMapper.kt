@@ -1,9 +1,14 @@
 package net.ukisoft.ukistreams.model.playthrough
 
-import net.ukisoft.ukistreams.core.EditModelMapper
+import net.ukisoft.ukistreams.entities.Game
+import net.ukisoft.ukistreams.entities.GameReview
+import net.ukisoft.ukistreams.entities.Playthrough
+import net.ukisoft.ukistreams.model.core.EditModelMapper
+import net.ukisoft.ukistreams.model.game.GameRepository
+import net.ukisoft.ukistreams.model.genre.GenreRepository
+import net.ukisoft.ukistreams.model.platform.PlatformRepository
+import net.ukisoft.ukistreams.model.project.ProjectRepository
 import java.util.function.Consumer
-import java.util.function.Function
-import java.util.function.Predicate
 
 /**
  * Started in IntelliJ IDEA
@@ -16,82 +21,85 @@ class PlaythroughEditModelMapper(
     gameRepository: GameRepository,
     projectRepository: ProjectRepository,
     vodRepository: VodRepository,
-    vodPartRepository: VodPartRepository?
-) : EditModelMapper<Playthrough?, PlaythroughEditModel?> {
+    vodPartRepository: VodPartRepository
+) : EditModelMapper<Playthrough, PlaythroughEditModel> {
     private val platformRepository: PlatformRepository
     private val genreRepository: GenreRepository
     private val gameRepository: GameRepository
     private val projectRepository: ProjectRepository
     private val vodRepository: VodRepository
     private val vodMapper: VodEditModelMapper
-    fun toModel(entity: Playthrough): PlaythroughEditModel {
-        val model = PlaythroughEditModel()
-        model.id = entity.getId()
-        model.gameId = Util.getSafeValue { entity.getGame().getId() }
-        model.region = entity.getRegion()
-        model.duration = entity.getDuration()
-        model.startDate = entity.getStartDate().toLocalDate()
-        model.endDate = entity.getEndDate().toLocalDate()
-        model.pickedBy = entity.getPickedBy()
-        model.projectId = Util.getSafeValue { entity.getProject().getId() }
-        model.firstPlaythrough = entity.getFirstPlaythrough()
-        model.blind = entity.getBlind()
-        model.comment = entity.getComment()
-        model.vods = entity.getVods()
-            .stream()
+    override fun toModel(entity: Playthrough): PlaythroughEditModel = PlaythroughEditModel(
+        entity.id,
+        false,
+        entity.game!!.id!!,
+        null,
+        entity.region!!,
+        entity.duration!!,
+        entity.startDate!!.toLocalDate(),
+        entity.endDate!!.toLocalDate(),
+        entity.pickedBy!!,
+        entity.project!!.id!!,
+        entity.firstPlaythrough!!,
+        entity.blind!!,
+        entity.comment!!,
+        entity.vods
             .map(vodMapper::toModel)
-            .collect(Collectors.toList())
-        return model
-    }
+    )
 
-    fun updateEntity(entity: Playthrough, model: PlaythroughEditModel) {
-        entity.setRegion(model.region)
-        entity.setDuration(model.duration)
-        entity.setStartDate(model.startDate.atStartOfDay())
-        entity.setEndDate(model.endDate.atStartOfDay())
-        entity.setPickedBy(model.pickedBy)
-        entity.setProject(projectRepository.getOne(model.projectId))
-        entity.setFirstPlaythrough(model.firstPlaythrough)
-        entity.setBlind(model.blind)
-        entity.setComment(model.comment)
-        val vodMap: Map<Long, VodEditModel> = model.vods.stream()
-            .filter(Predicate { x: VodEditModel? -> x.id != null })
-            .collect(Collectors.toMap<Any, Any, Any>(VodEditModel::getId, Function { x: Any? -> x }))
-        entity.getVods().stream()
-            .filter { x -> !vodMap.containsKey(x.getId()) }
+    override fun updateEntity(entity: Playthrough, model: PlaythroughEditModel) {
+        entity.region = model.region
+        entity.duration = model.duration
+        entity.startDate = model.startDate.atStartOfDay()
+        entity.endDate = model.endDate.atStartOfDay()
+        entity.pickedBy = model.pickedBy
+        entity.project = projectRepository.getById(model.projectId)
+        entity.firstPlaythrough = model.firstPlaythrough
+        entity.blind = model.blind
+        entity.comment = model.comment
+
+
+        val vodMap: Map<Long, VodEditModel> = model.vods
+            .filter { it.id != null }
+            .associateBy { it.id!! }
+
+        entity.vods
+            .filter { !vodMap.containsKey(it.id) }
             .forEach(entity::removeVod)
-        model.vods.stream()
-            .filter(Predicate { x: VodEditModel? -> x.id == null })
-            .forEach(Consumer { vodModel: VodEditModel? ->
-                val vodEntity: Unit = vodMapper.toNewEntity(vodModel)
+
+        model.vods
+            .filter { it.id == null }
+            .forEach(Consumer { vodModel ->
+                val vodEntity = vodMapper.toNewEntity(vodModel)
                 entity.addVod(vodEntity)
                 vodRepository.save(vodEntity)
             })
-        entity.getVods().stream()
-            .filter { x -> vodMap.containsKey(x.getId()) }
+
+        entity.vods
+            .filter { vodMap.containsKey(it.id) }
             .forEach { vodEntity ->
-                val vodModel: VodEditModel? = vodMap[vodEntity.getId()]
+                val vodModel = vodMap[vodEntity.id]!!
                 vodMapper.updateEntity(vodEntity, vodModel)
                 vodRepository.save(vodEntity)
             }
     }
 
-    fun toNewEntity(model: PlaythroughEditModel): Playthrough {
+    override fun toNewEntity(model: PlaythroughEditModel): Playthrough {
         val playthrough = Playthrough()
-        if (model.isNewGame) {
+        if (model.newGame) {
             val gameInfo: NewGameModel? = model.newGameInfo
             val game = Game()
-            game.setName(gameInfo.name)
-            game.setPlatform(platformRepository.getOne(gameInfo.platformId))
-            game.setGenre(genreRepository.getOne(gameInfo.genreId))
+            game.name = gameInfo!!.name
+            game.platform = platformRepository.getById(gameInfo.platformId!!)
+            game.genre = genreRepository.getById(gameInfo.genreId!!)
             val gameReview = GameReview()
-            gameReview.setDifficulty(gameInfo.difficulty)
-            gameReview.setRate(gameInfo.rate)
-            game.setReview(gameReview)
+            gameReview.difficulty = gameInfo.difficulty
+            gameReview.rate = gameInfo.rate
+            game.review = gameReview
             gameRepository.save(game)
-            playthrough.setGame(game)
+            playthrough.game = game
         } else {
-            playthrough.setGame(gameRepository.getOne(model.gameId))
+            playthrough.game = gameRepository.getById(model.gameId)
         }
         updateEntity(playthrough, model)
         return playthrough

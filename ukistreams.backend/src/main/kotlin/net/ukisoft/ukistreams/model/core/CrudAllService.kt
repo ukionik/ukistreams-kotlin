@@ -15,5 +15,5 @@ import java.util.stream.Collectors
  * User: Vyzhanov Andrey
  * Created: 27.08.2020 07:26
  */
-interface CrudAllService<TEditModel : BaseEditModel?, TItemModel : BaseItemModel?> : CrudService<TEditModel>,
+interface CrudAllService<TEditModel : BaseEditModel, TItemModel : BaseItemModel> : CrudService<TEditModel>,
     FindAllService<TItemModel>

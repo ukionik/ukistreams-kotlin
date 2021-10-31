@@ -1,10 +1,8 @@
 package net.ukisoft.ukistreams.model.playthrough
 
-import net.ukisoft.ukistreams.entity.Playthrough
-import java.util.ArrayList
-import java.util.Comparator
-import java.util.function.Consumer
-import java.util.function.Function
+import net.ukisoft.ukistreams.entities.Playthrough
+import net.ukisoft.ukistreams.entities.Vod
+import net.ukisoft.ukistreams.entities.VodPart
 
 /**
  * Started in IntelliJ IDEA
@@ -13,48 +11,50 @@ import java.util.function.Function
  */
 class PlaythroughItemModelMapper {
     fun toModel(
-        entity: Playthrough, vodGroup: List<Map.Entry<Vod, List<VodPart>>>
+        entity: Playthrough, vodGroup: List<Pair<Vod, List<VodPart>>>
     ): PlaythroughItemModel {
-        val model = PlaythroughItemModel()
-        model.id = entity.getId()
-        model.gameName = entity.getGame().getName()
-        model.platformName = entity.getGame().getPlatform().getShortName()
-        model.genreName = entity.getGame().getGenre().getName()
-        model.rate = entity.getGame().getReview().getRate()
-        model.difficulty = entity.getGame().getReview().getDifficulty()
-        model.region = entity.getRegion().name()
-        model.duration = entity.getDuration()
-        model.startDate = entity.getStartDate().toLocalDate()
-        model.endDate = entity.getEndDate().toLocalDate()
-        model.pickedBy = entity.getPickedBy()
-        model.projectName = entity.getProject().getName()
-        model.firstPlaythrough = entity.getFirstPlaythrough().getLabel()
-        model.blind = entity.getBlind().getLabel()
-        model.comment = entity.getComment()
-        val vods: MutableList<PlaythroughVodItemModel> = ArrayList<PlaythroughVodItemModel>()
-        vodGroup.stream()
-            .sorted(
-                Comparator.comparing<Map.Entry<Vod, List<VodPart>>, Any>(
-                    Function<Map.Entry<Vod, List<VodPart>>, Any> { (key): Map.Entry<Vod, List<VodPart>> -> key.getType() })
-            )
-            .forEach { (vod, value): Map.Entry<Vod, List<VodPart>> ->
-                val vodModel = PlaythroughVodItemModel()
-                vodModel.id = vod.getId()
-                vodModel.type = vod.getType().name()
+        val vods = ArrayList<PlaythroughVodItemModel>()
+        vodGroup
+            .sortedBy { it.first.type }
+            .forEach { (vod, parts) ->
+                val vodParts = ArrayList<PlaythroughVodPartItemModel>()
+                parts
+                    .sortedBy { it.ordinal }
+                    .forEach {
+                        val partModel = PlaythroughVodPartItemModel(
+                            it.id!!,
+                            it.ordinal!!,
+                            it.url!!
+                        )
+                        vodParts.add(partModel)
+                    }
+
+                val vodModel = PlaythroughVodItemModel(
+                    vod.id!!,
+                    vod.type!!.name,
+                    vodParts
+                )
+
                 vods.add(vodModel)
-                val parts: MutableList<PlaythroughVodPartItemModel> = ArrayList<PlaythroughVodPartItemModel>()
-                value.stream()
-                    .sorted(Comparator.comparing<VodPart, Any>(VodPart::getOrdinal))
-                    .forEach(Consumer<VodPart> { part: VodPart ->
-                        val partModel = PlaythroughVodPartItemModel()
-                        partModel.id = part.getId()
-                        partModel.ordinal = part.getOrdinal()
-                        partModel.url = part.getUrl()
-                        parts.add(partModel)
-                    })
-                vodModel.parts = parts
             }
-        model.vods = vods
-        return model
+
+        return PlaythroughItemModel(
+            entity.id!!,
+            entity.game!!.name!!,
+            entity.game!!.platform!!.shortName!!,
+            entity.game!!.genre!!.name!!,
+            entity.game!!.review!!.rate,
+            entity.game!!.review!!.difficulty,
+            entity.region!!.name,
+            entity.duration!!,
+            entity.startDate!!.toLocalDate(),
+            entity.endDate!!.toLocalDate(),
+            entity.pickedBy!!,
+            entity.project!!.name!!,
+            entity.firstPlaythrough!!.label,
+            entity.blind!!.label,
+            vods,
+            entity.comment!!
+        )
     }
 }

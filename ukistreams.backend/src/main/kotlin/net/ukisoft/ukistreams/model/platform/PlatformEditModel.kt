@@ -8,7 +8,7 @@ import net.ukisoft.ukistreams.model.core.BaseEditModel
  * Created: 22.08.2020 01:51
  */
 data class PlatformEditModel(
-    override val id: Long,
+    override val id: Long?,
     val ordinal: Int,
     val name: String,
     val shortName: String
