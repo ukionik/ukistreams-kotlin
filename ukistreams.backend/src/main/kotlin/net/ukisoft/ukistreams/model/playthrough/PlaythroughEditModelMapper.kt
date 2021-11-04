@@ -88,7 +88,7 @@ class PlaythroughEditModelMapper(
         if (model.newGame) {
             val gameInfo: NewGameModel? = model.newGameInfo
             val game = Game()
-            game.name = gameInfo!!.name
+            game.name = gameInfo!!.name!!
             game.platform = platformRepository.getById(gameInfo.platformId!!)
             game.genre = genreRepository.getById(gameInfo.genreId!!)
             val gameReview = GameReview()
